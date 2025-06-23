@@ -1,14 +1,15 @@
-# Compiler and flags for macOS
-CC = gcc-14
-CFLAGS = -Wall -Wextra -O3 -fopenmp
-LDFLAGS = -fopenmp
+# Compiler settings
+MPICC = mpicc
+CC = gcc  # Changed from gcc-14 to gcc for cluster compatibility
+CFLAGS = -Wall -Wextra -O3
+LDFLAGS = 
 
 # Source files
 SRCS = lcs.c
 OBJS = $(SRCS:.c=.o)
 
 # Executables
-TARGET = lcs
+TARGET = lcs_mpi
 TARGET_ORIGINAL = lcs_original
 
 # Python requirements
@@ -17,21 +18,21 @@ REQUIREMENTS = requirements.txt
 # Default target
 all: $(TARGET) $(TARGET_ORIGINAL) python-deps
 
-# Compile the LCS program
+# Compile the MPI LCS program
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	$(MPICC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-# Compile the original LCS program
+# Compile the original LCS program (still using OpenMP)
 $(TARGET_ORIGINAL): lcs_original.c
-	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+	$(CC) -Wall -Wextra -O3 -fopenmp -o $@ $< -fopenmp
 
 # Compile source files
 %.o: %.c
-	$(CC) $(CFLAGS) -c $<
+	$(MPICC) $(CFLAGS) -c $<
 
 # Install Python dependencies
 python-deps:
-	pip install -r $(REQUIREMENTS)
+	@echo "Skipping pip install - using built-in Python libraries only"
 
 # Clean up object files, executables, experiment results, and input files
 clean:
